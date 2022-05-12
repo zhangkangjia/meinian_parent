@@ -7,6 +7,9 @@ public class testGit {
         System.out.println("testCommit");
         System.out.println("testCommit");
         System.out.println("testCommit");
-        
+         System.out.println("testCommit");
+        System.out.println("testCommit");
+        System.out.println("testCommit");
+
     }
 }
