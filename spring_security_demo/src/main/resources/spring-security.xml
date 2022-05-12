@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                  http://www.springframework.org/schema/beans/spring-beans.xsd
+                  http://www.springframework.org/schema/mvc
+                  http://www.springframework.org/schema/mvc/spring-mvc.xsd
+                  http://www.springframework.org/schema/context
+                  http://www.springframework.org/schema/context/spring-context.xsd
+                          http://www.springframework.org/schema/security
+                          http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <!--
+      ① 配置哪些链接可以放行(没有认证通过也可以访问的资源)
+      security="none"：没有权限
+      pattern="/login.html"：没有任何权限，可以访问login.html
+    -->
+    <!--<security:http security="none" pattern="/login.html"></security:http>-->
+
+    <!--
+    ② 定义哪些链接不可以放行(必须通过认证才能访问的资源)，及需要有角色，有权限才可以放行访问资源
+    <security:http auto-config="true" use-expressions="true">
+          auto-config="true":开启自动配置 由springsecurity提供登录页面，提供登录的url地址，退出的url地址
+          use-expressions="true"：使用表达式的方式控制权限
+             security:intercept-url：定义哪些链接不可以放行，需要当前角色和权限才能放行
+                pattern="/**"：要求系统中的所有资源，都必须通过角色和权限才能访问
+                access：指定角色和权限
+                   如果使用表达式use-expressions="true"
+                       access="hasRole('ROLE_ADMIN')：表示具有ROLE_ADMIN的角色才能访问系统的资源
+                   如果不使用表达式use-expressions="false"
+                       access="ROLE_ADMIN：表示具有ROLE_ADMIN的角色才能访问系统的资源
+    -->
+    <security:http auto-config="true" use-expressions="true">
+<!--
+        <security:intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')"></security:intercept-url>
+-->
+        <!--只要认证通过就可以访问-->
+    <security:intercept-url pattern="/index.html" access="isAuthenticated()"></security:intercept-url>
+    <security:intercept-url pattern="/a.html" access="isAuthenticated()"></security:intercept-url>
+
+        <!--拥有add权限就可以访问b.html页面-->
+        <security:intercept-url pattern="/b.html"  access="hasAuthority('add')" />
+        <!--拥有ROLE_ADMIN角色就可以访问c.html页面，
+                注意：此处虽然写的是ADMIN角色，框架会自动加上前缀ROLE_-->
+        <security:intercept-url pattern="/c.html"  access="hasRole('ROLE_ADMIN')" />
+
+        <!--拥有ROLE_ADMIN角色就可以访问d.html页面-->
+        <security:intercept-url pattern="/d.html"  access="hasRole('ABC')" />
+
+        <!--
+          logout：退出登录
+          logout-url：退出登录操作对应的请求路径
+          logout-success-url：退出登录后的跳转页面
+          invalidate-session="true" 默认为true,用户在退出后Http session失效
+        -->
+        <security:logout logout-url="/logout.do" logout-success-url="/login.html" invalidate-session="true"/>
+
+
+    </security:http>
+
+    <!--
+      ③ 认证管理：定义登录账号和密码，并授予当前用户访问的角色或权限
+        （1）：将用户名和密码：当前用户具有的角色，写死到配置文件中（现在:入门）
+                security:user name="admin" :登录名
+                authorities="ROLE_ADMIN"   ：角色(ROLE_ADMIN),权限
+                password="admin"          ：密码
+         （2）：用户名和密码，当前用户具有的角色，从数据库中查询（后续）
+    -->
+
+    <security:authentication-manager>
+        <security:authentication-provider user-service-ref="userService">
+           <!-- <security:user-service>-->
+<!--                <security:user name="admin" authorities="ROLE_ADMIN" password="{noop}admin"></security:user>-->
+           <!-- </security:user-service>-->
+            <!--指定密码加密策略-->
+            <security:password-encoder ref="passwordEncoder"></security:password-encoder>
+
+        </security:authentication-provider>
+    </security:authentication-manager>
+
+    <context:component-scan base-package="com.chd.service"></context:component-scan>
+    <!--配置密码加密对象-->
+    <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+    <context:component-scan base-package="com.chd.controller"/>
+    <mvc:annotation-driven />
+    <!--开启注解方式权限控制-->
+    <security:global-method-security pre-post-annotations="enabled" />
+
+</beans>

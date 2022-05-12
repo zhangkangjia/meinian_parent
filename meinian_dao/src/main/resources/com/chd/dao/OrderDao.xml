@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chd.dao.OrderDao">
+
+    <insert id="add" parameterType="order" useGeneratedKeys="true" keyProperty="id">
+       insert into t_order(member_id,orderDate,orderType,orderStatus,setmeal_id) values (#{memberId},#{orderDate},#{orderType},#{orderStatus},#{setmealId})
+    </insert>
+    <select id="findByCondition" parameterType="order" resultType="com.chd.pojo.Order">
+        select * from t_order
+        <where>
+            <if test="id!=null">
+                and id=#{id}
+            </if>
+            <if test="memberId != null">
+            and member_id = #{memberId}
+            </if>
+            <if test="orderDate != null">
+                and orderDate = #{orderDate}
+            </if>
+            <if test="orderType != null">
+                and orderType = #{orderType}
+            </if>
+            <if test="orderStatus != null">
+                and orderStatus = #{orderStatus}
+            </if>
+            <if test="setmealId != null">
+                and setmeal_id = #{setmealId}
+            </if>
+
+        </where>
+    </select>
+    <select id="findById4Detail" parameterType="integer" resultType="java.util.Map">
+      select  m.name member ,s.name setmeal,o.orderDate orderDate,o.orderType orderType
+  from  t_order o, t_member m,  t_setmeal s where  o.member_id=m.id and o.setmeal_id=s.id and o.id=#{id}
+
+    </select>
+    <select id="getTodayOrderNumber" resultType="java.lang.Integer" parameterType="string">
+        select count(*) from t_order where orderDate=#{today}
+    </select>
+    <select id="getVisitsNumber" resultType="java.lang.Integer" parameterType="string">
+        select count(*) from t_order where orderDate=#{today} AND orderStatus = '已出游'
+    </select>
+    <select id="getThisWeekOrderNumber" resultType="java.lang.Integer" parameterType="map">
+        SELECT COUNT(id) FROM t_order WHERE orderDate BETWEEN #{begin} AND #{end}
+    </select>
+    <select id="getThisWeekVisitsNumber" resultType="java.lang.Integer" parameterType="map">
+        SELECT COUNT(id) FROM t_order WHERE orderDate BETWEEN #{begin} AND #{end} AND orderStatus = '已出游'
+    </select>
+    <select id="getThisWeekAndMonthOrderNumber" resultType="java.lang.Integer" parameterType="string">
+        SELECT COUNT(id) FROM t_order WHERE orderDate BETWEEN #{begin} AND #{end}
+    </select>
+    <select id="getThisWeekAndMonthVisitsNumber" resultType="java.lang.Integer" parameterType="string">
+        SELECT COUNT(id) FROM t_order WHERE orderDate BETWEEN #{begin} AND #{end} AND orderStatus = '已出游'
+    </select>
+    <select id="findHotSetmeal" resultType="java.util.Map">
+        SELECT s.name name,COUNT(s.id) setmeal_count,COUNT(s.id)/(SELECT COUNT(id) FROM t_order) proportion
+        FROM t_setmeal s,t_order o WHERE s.id = o.setmeal_id
+        GROUP BY s.name
+        ORDER BY setmeal_count DESC
+            LIMIT 0,4
+    </select>
+</mapper>
