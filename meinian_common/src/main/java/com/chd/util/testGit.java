@@ -5,5 +5,8 @@ public class testGit {
         System.out.println("111111111111111111111Master");
         System.out.println("111111111111111111111DEV1");
         System.out.println("testCommit");
+        System.out.println("testCommit");
+        System.out.println("testCommit");
+        
     }
 }
